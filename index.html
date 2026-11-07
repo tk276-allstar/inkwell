@@ -38,6 +38,8 @@ h1{font-family:'Lora',Georgia,serif;font-size:2rem;margin:8px 0 2px}
 .gt{margin-top:7px;font-size:.78rem;font-weight:700;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 mark.hl{color:inherit;border-radius:3px;padding:0}
 #text p{orphans:2;widows:2}
+#bk{display:flex;gap:10px;margin-top:28px}
+#bk button{flex:1;border:1px solid var(--bd);background:var(--card);border-radius:12px;padding:12px;font-weight:800}
 #splash{position:fixed;inset:0;z-index:999;background:#172A3E;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font:800 2.2rem 'Lora',Georgia,serif;transition:opacity .4s}
 #splash.out{opacity:0;pointer-events:none}
 #scroll:not(.paged) .pb{text-align:center;margin:1.4em 0;opacity:.5}
@@ -93,6 +95,8 @@ input[type=color]{width:42px;height:42px;border:0;padding:0;background:none}
   <p class="sub">Upload a PDF and read it your way.</p>
   <div id="chips"></div><div id="cact"></div>
   <div id="list"></div>
+  <div id="bk"><button id="bkb">↓ Back up library</button><button id="rsb">↑ Restore backup</button></div>
+  <input id="rsf" type="file" accept=".json,application/json" hidden>
 </div>
 <button id="fab">+ Add PDF</button>
 <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
@@ -382,6 +386,22 @@ document.addEventListener('selectionchange',()=>{const s=getSelection(),ok=cur&&
 $('hb').addEventListener('pointerdown',()=>clearTimeout(ht));
 $('hb').addEventListener('mousedown',e=>e.preventDefault());
 $('hb').onclick=e=>{const b=e.target.closest('button');if(b)doHL(b.id==='hx'?null:b.dataset.c)};
+/* backup & restore */
+$('bkb').onclick=async()=>{if(!memBooks.length){toast('Nothing to back up yet.');return}
+  for(const c of Object.keys(locks)){if(!await unlock(c)){toast('Backup cancelled. Unlock every locked category first.',5000);return}}
+  try{const d={app:'inkwell',v:1,date:new Date().toISOString(),books:memBooks,cats,locks};
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='inkwell-backup-'+d.date.slice(0,10)+'.json';
+    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10000);toast('Backup saved to your downloads.',5000)}
+  catch(e){toast('Couldn’t create the backup.',5000)}};
+$('rsb').onclick=()=>$('rsf').click();
+$('rsf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;
+  try{d=JSON.parse(await f.text());if(d.app!=='inkwell'||!Array.isArray(d.books))throw 0}catch(err){toast('That doesn’t look like an Inkwell backup file.',6000);return}
+  if(!await ask('Restore backup?',{text:d.books.length+' book'+(d.books.length===1?'':'s')+' in this file'+(d.date?' (saved '+d.date.slice(0,10)+')':'')+'. Books already on this device are kept, and matching ones are updated to the backup version.',ok:'Restore'}))return;
+  try{for(const b of d.books){await putBook(b);const i=memBooks.findIndex(k=>k.id===b.id);if(i>=0)memBooks[i]=b;else memBooks.push(b)}
+    (d.cats||[]).forEach(c=>{if(!cats.includes(c))cats.push(c)});memBooks.forEach(k=>{if(k.cat&&!cats.includes(k.cat))cats.push(k.cat)});saveC();
+    Object.keys(d.locks||{}).forEach(c=>{if(!locks[c])locks[c]=d.locks[c]});saveL();
+    render();toast('Restored '+d.books.length+' book'+(d.books.length===1?'':'s')+'.',5000)}
+  catch(err){toast('Restore failed. Your device may be out of storage.',6000)}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&unl.size){unl.clear();render()}});
 allBooks().then(b=>{memBooks=b||[];memBooks.forEach(k=>{if(k.cat&&!cats.includes(k.cat))cats.push(k.cat)});render()}).catch(()=>{render();toast('Storage is unavailable, so books won’t be saved after you close this page.',6000)});
 </script>
