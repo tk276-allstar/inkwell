@@ -38,6 +38,8 @@ h1{font-family:'Lora',Georgia,serif;font-size:2rem;margin:8px 0 2px}
 .gt{margin-top:7px;font-size:.78rem;font-weight:700;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 mark.hl{color:inherit;border-radius:3px;padding:0}
 #text p{orphans:2;widows:2}
+#splash{position:fixed;inset:0;z-index:999;background:#6d4aff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font:800 2.2rem 'Lora',Georgia,serif;transition:opacity .4s}
+#splash.out{opacity:0;pointer-events:none}
 #scroll:not(.paged) .pb{text-align:center;margin:1.4em 0;opacity:.5}
 #scroll:not(.paged) .pb::before{content:'❖'}
 #scroll.paged .pb{break-before:column;height:0;margin:0}
@@ -83,6 +85,8 @@ input[type=color]{width:42px;height:42px;border:0;padding:0;background:none}
 <link rel="icon" href="icon-192.png">
 </head>
 <body>
+<div id="splash"><svg viewBox="0 0 10 10" width="130" height="130" aria-hidden="true"><polygon points="5,2.6 5,8.4 1,7.4 1,1.8" fill="#fff"/><polygon points="5,2.6 9,1.8 9,7.4 5,8.4" fill="#e9e2ff"/><g stroke="#6d4aff" stroke-width=".14"><path d="M1.9 3.45L4.3 3.95M1.9 4.75L4.3 5.25M1.9 6.05L4.3 6.55M5.7 3.95L8.1 3.45M5.7 5.25L8.1 4.75M5.7 6.55L8.1 6.05"/></g></svg><div>Inkwell</div></div>
+<script>setTimeout(function(){var s=document.getElementById('splash');if(!s)return;s.classList.add('out');setTimeout(function(){s.remove()},450)},5000)</script>
 <div id="lib">
   <h1>Inkwell</h1>
   <p class="sub">Upload a PDF and read it your way.</p>
